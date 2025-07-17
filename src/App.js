@@ -17,7 +17,7 @@ function App() {
   const [pointNo, setPointNo] = useState('');
   const [rimElev, setRimElev] = useState('');
   
-  const [pipes, setPipes] = useState([{ direction: '', depth: '' }]);
+  const [pipes, setPipes] = useState([{ direction: '', depth: '', to: '' }]);
 
   // Add a pipe field
   function addPipeField() {
@@ -120,7 +120,7 @@ function App() {
         <div>
           <b>Pipes:</b>
           {pipes.map((pipe, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom:6}}>
               <span style={{ marginRight: 6, color: '#999' }}>{idx + 1}.</span>
               <input
                 placeholder="Direction"
@@ -182,9 +182,9 @@ function App() {
       </table>
       <button onClick={exportCSV} disabled={manholes.length === 0}>Export CSV</button>
       <div>
-       {/* <h2>Test new clean project!</h2> */}
+       <h2>Test new clean project!</h2>
       </div>
-      {/* <FlowDemo manholes={manholes} pipes={pipes} /> */}
+      <FlowDemo manholes={manholes} pipes={pipes} />
       </div>
   );
 }
