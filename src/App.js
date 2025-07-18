@@ -16,12 +16,15 @@ function App() {
 
   const [pointNo, setPointNo] = useState('');
   const [rimElev, setRimElev] = useState('');
-  
-  const [pipes, setPipes] = useState([{ direction: '', depth: '', to: '' }]);
 
+  const emptyPipe = {pipeLabel: '', direction: '', angle: '', depth: '', to: ''};
+
+  const [pipes, setPipes] = useState([{...emptyPipe } ]);
+
+  
   // Add a pipe field
   function addPipeField() {
-    setPipes([...pipes, { direction: '', depth: '' }]);
+    setPipes([...pipes, {...emptyPipe} ]);
   }
 
   // Remove a pipe field
@@ -33,7 +36,7 @@ function App() {
   function updatePipe(idx, field, value) {
     setPipes(pipes.map((pipe, i) =>
       i === idx ? { ...pipe, [field]: value } : pipe
-    ));
+  ));
   }
 
   // Handle Add Manhole
@@ -45,34 +48,40 @@ function App() {
         manholeName,
         pointNo,
         rimElev,
-        pipes: pipes.filter(p => p.direction || p.depth),
+        pipes: pipes.filter(p => p.pipeLabel | p.direction || p.angle || p.depth || p.to),
       },
     ]);
     setManholeName('');
     setPointNo('');
     setRimElev('');
-    setPipes([{ direction: '', depth: '' }]);
+    setPipes([ { ...emptyPipe } ]);
   }
 
   // Add new empty manhole (reset fields)
   function newManhole() {
+    setManholeName('');
     setPointNo('');
     setRimElev('');
-    setPipes([{ direction: '', depth: '' }]);
+    setPipes([ { ...emptyPipe } ]);
   }
 
   // Export to CSV
   function exportCSV() {
     const rows = [
-      ['Point No', 'Rim Elev', 'Pipe Dir', 'Depth', 'Invert'],
+      ['Manhole Name', 'Point No', 'Rim Elev', 'Pipe Label', 'Direction', 'Angle', 'Depth', 'To', 'Invert'],
     ];
     manholes.forEach(m =>
       m.pipes.forEach(p =>
         rows.push([
+          m.manholeName,
           m.pointNo,
           m.rimElev,
+          p.pipeLabel,
+          // p.pipeType,
           p.direction,
+          p.angle,
           p.depth,
+          p.to,
           calcInvert(m.rimElev, p.depth),
         ])
       )
@@ -104,7 +113,6 @@ function App() {
               value={pointNo}
               onChange={e => setPointNo(e.target.value)}
               style={{ marginLeft: 10, width: 80 }}
-              autoFocus
             />
           </label>
           <label style={{ marginLeft: 20 }}>
@@ -120,23 +128,43 @@ function App() {
         <div>
           <b>Pipes:</b>
           {pipes.map((pipe, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom:6}}>
-              <span style={{ marginRight: 6, color: '#999' }}>{idx + 1}.</span>
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+              <input
+                placeholder="Label"
+                value={pipe.pipeLabel}
+                style={{ width: 45, marginRight: 8 }}
+                onChange={e => updatePipe(idx, 'pipeLabel', e.target.value)}
+              />
+              {/* <input
+                placeholder="Type"
+                value={pipe.pipeType}
+                style={{ width: 65, marginRight: 8 }}
+                onChange={e => updatePipe(idx, 'pipeType', e.target.value)}
+              /> */}
               <input
                 placeholder="Direction"
                 value={pipe.direction}
+                style={{ width: 65, marginRight: 8 }}
                 onChange={e => updatePipe(idx, 'direction', e.target.value)}
-                style={{ width: 60, marginRight: 8 }}
+              />
+              <input
+                placeholder="Angle"
+                value={pipe.angle}
+                style={{ width: 45, marginRight: 8 }}
+                onChange={e => updatePipe(idx, 'angle', e.target.value)}
               />
               <input
                 placeholder="Depth"
                 value={pipe.depth}
+                style={{ width: 50, marginRight: 8 }}
                 onChange={e => updatePipe(idx, 'depth', e.target.value)}
-                style={{ width: 60, marginRight: 8 }}
               />
-              <span style={{ marginRight: 8, minWidth: 80, color: '#666' }}>
-                Invert: <b>{calcInvert(rimElev, pipe.depth)}</b>
-              </span>
+              <input
+                placeholder="To Manhole"
+                value={pipe.to}
+                style={{ width: 90, marginRight: 8 }}
+                onChange={e => updatePipe(idx, 'to', e.target.value)}
+              />
               {pipes.length > 1 && (
                 <button type="button" onClick={() => removePipeField(idx)} style={{ marginRight: 8 }}>-</button>
               )}
@@ -156,24 +184,34 @@ function App() {
       <table border="1" cellPadding="4" style={{ width: '100%', marginBottom: 15 }}>
         <thead>
           <tr>
+            <th>Manhole Name</th>
             <th>Point No</th>
             <th>Rim Elev</th>
-            <th>Pipe Dir</th>
+            <th>Pipe Label</th>
+         
+            <th>Direction</th>
+            <th>Angle</th>
             <th>Depth</th>
+            <th>To</th>
             <th>Invert</th>
           </tr>
         </thead>
         <tbody>
           {manholes.length === 0 && (
-            <tr><td colSpan={5} style={{ textAlign: 'center' }}>No data yet</td></tr>
+            <tr><td colSpan={10} style={{ textAlign: 'center' }}>No data yet</td></tr>
           )}
           {manholes.map((m, mi) =>
             m.pipes.map((p, pi) => (
               <tr key={`${mi}-${pi}`}>
+                <td>{m.manholeName}</td>
                 <td>{m.pointNo}</td>
                 <td>{m.rimElev}</td>
+                <td>{p.pipeLabel}</td>
+               
                 <td>{p.direction}</td>
+                <td>{p.angle}</td>
                 <td>{p.depth}</td>
+                <td>{p.to}</td>
                 <td>{calcInvert(m.rimElev, p.depth)}</td>
               </tr>
             ))
@@ -181,11 +219,8 @@ function App() {
         </tbody>
       </table>
       <button onClick={exportCSV} disabled={manholes.length === 0}>Export CSV</button>
-      <div>
-       <h2>Test new clean project!</h2>
-      </div>
-      <FlowDemo manholes={manholes} pipes={pipes} />
-      </div>
+      <FlowDemo manholes={manholes} />
+    </div>
   );
 }
 
