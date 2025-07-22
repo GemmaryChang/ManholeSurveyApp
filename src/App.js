@@ -17,7 +17,7 @@ function App() {
   const [pointNo, setPointNo] = useState('');
   const [rimElev, setRimElev] = useState('');
 
-  const emptyPipe = {pipeLabel: '', direction: '', angle: '', depth: '', to: ''};
+  const emptyPipe = { direction: '', depth: '', to: ''};
 
   const [pipes, setPipes] = useState([{...emptyPipe } ]);
 
@@ -48,7 +48,7 @@ function App() {
         manholeName,
         pointNo,
         rimElev,
-        pipes: pipes.filter(p => p.pipeLabel | p.direction || p.angle || p.depth || p.to),
+        pipes: pipes.filter(p => p.direction || p.depth || p.to),
       },
     ]);
     setManholeName('');
@@ -68,7 +68,7 @@ function App() {
   // Export to CSV
   function exportCSV() {
     const rows = [
-      ['Manhole Name', 'Point No', 'Rim Elev', 'Pipe Label', 'Direction', 'Angle', 'Depth', 'To', 'Invert'],
+      ['Manhole Name', 'Point No', 'Rim Elev', 'Direction', 'Depth', 'To', 'Invert'],
     ];
     manholes.forEach(m =>
       m.pipes.forEach(p =>
@@ -76,10 +76,10 @@ function App() {
           m.manholeName,
           m.pointNo,
           m.rimElev,
-          p.pipeLabel,
+          // p.pipeLabel,
           // p.pipeType,
           p.direction,
-          p.angle,
+          // p.angle,
           p.depth,
           p.to,
           calcInvert(m.rimElev, p.depth),
@@ -129,12 +129,12 @@ function App() {
           <b>Pipes:</b>
           {pipes.map((pipe, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
-              <input
+              {/* <input
                 placeholder="Label"
                 value={pipe.pipeLabel}
                 style={{ width: 45, marginRight: 8 }}
                 onChange={e => updatePipe(idx, 'pipeLabel', e.target.value)}
-              />
+              /> */}
               {/* <input
                 placeholder="Type"
                 value={pipe.pipeType}
@@ -147,12 +147,12 @@ function App() {
                 style={{ width: 65, marginRight: 8 }}
                 onChange={e => updatePipe(idx, 'direction', e.target.value)}
               />
-              <input
+              {/* <input
                 placeholder="Angle"
                 value={pipe.angle}
                 style={{ width: 45, marginRight: 8 }}
                 onChange={e => updatePipe(idx, 'angle', e.target.value)}
-              />
+              /> */}
               <input
                 placeholder="Depth"
                 value={pipe.depth}
@@ -187,10 +187,10 @@ function App() {
             <th>Manhole Name</th>
             <th>Point No</th>
             <th>Rim Elev</th>
-            <th>Pipe Label</th>
+            {/* <th>Pipe Label</th> */}
          
             <th>Direction</th>
-            <th>Angle</th>
+            {/* <th>Angle</th> */}
             <th>Depth</th>
             <th>To</th>
             <th>Invert</th>
@@ -206,10 +206,10 @@ function App() {
                 <td>{m.manholeName}</td>
                 <td>{m.pointNo}</td>
                 <td>{m.rimElev}</td>
-                <td>{p.pipeLabel}</td>
+                {/* <td>{p.pipeLabel}</td> */}
                
                 <td>{p.direction}</td>
-                <td>{p.angle}</td>
+                {/* <td>{p.angle}</td> */}
                 <td>{p.depth}</td>
                 <td>{p.to}</td>
                 <td>{calcInvert(m.rimElev, p.depth)}</td>
