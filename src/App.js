@@ -17,14 +17,14 @@ function App() {
   const [pointNo, setPointNo] = useState('');
   const [rimElev, setRimElev] = useState('');
 
-  const emptyPipe = { direction: '', depth: '', to: ''};
+  const emptyPipe = { direction: '', depth: '', to: '' };
 
-  const [pipes, setPipes] = useState([{...emptyPipe } ]);
+  const [pipes, setPipes] = useState([{ ...emptyPipe }]);
 
-  
+
   // Add a pipe field
   function addPipeField() {
-    setPipes([...pipes, {...emptyPipe} ]);
+    setPipes([...pipes, { ...emptyPipe }]);
   }
 
   // Remove a pipe field
@@ -36,7 +36,7 @@ function App() {
   function updatePipe(idx, field, value) {
     setPipes(pipes.map((pipe, i) =>
       i === idx ? { ...pipe, [field]: value } : pipe
-  ));
+    ));
   }
 
   // Handle Add Manhole
@@ -54,7 +54,7 @@ function App() {
     setManholeName('');
     setPointNo('');
     setRimElev('');
-    setPipes([ { ...emptyPipe } ]);
+    setPipes([{ ...emptyPipe }]);
   }
 
   // Add new empty manhole (reset fields)
@@ -62,8 +62,34 @@ function App() {
     setManholeName('');
     setPointNo('');
     setRimElev('');
-    setPipes([ { ...emptyPipe } ]);
+    setPipes([{ ...emptyPipe }]);
   }
+
+
+  function updateTablePipe(mi, pi, field, value) {
+    setManholes(ms =>
+      ms.map((m, i) =>
+        i !== mi ? m : {
+          ...m,
+          pipes: m.pipes.map((p, j) =>
+            j !== pi ? p : { ...p, [field]: value }
+          )
+        }
+      )
+    );
+  }
+
+  // 这里是manhole主字段inline编辑
+  function updateManhole(mi, field, value) {
+    setManholes(ms =>
+      ms.map((m, i) =>
+        i !== mi ? m : { ...m, [field]: value }
+      )
+    );
+  }
+
+
+  
 
   // Export to CSV
   function exportCSV() {
@@ -129,30 +155,14 @@ function App() {
           <b>Pipes:</b>
           {pipes.map((pipe, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
-              {/* <input
-                placeholder="Label"
-                value={pipe.pipeLabel}
-                style={{ width: 45, marginRight: 8 }}
-                onChange={e => updatePipe(idx, 'pipeLabel', e.target.value)}
-              /> */}
-              {/* <input
-                placeholder="Type"
-                value={pipe.pipeType}
-                style={{ width: 65, marginRight: 8 }}
-                onChange={e => updatePipe(idx, 'pipeType', e.target.value)}
-              /> */}
+              
               <input
                 placeholder="Direction"
                 value={pipe.direction}
                 style={{ width: 65, marginRight: 8 }}
                 onChange={e => updatePipe(idx, 'direction', e.target.value)}
               />
-              {/* <input
-                placeholder="Angle"
-                value={pipe.angle}
-                style={{ width: 45, marginRight: 8 }}
-                onChange={e => updatePipe(idx, 'angle', e.target.value)}
-              /> */}
+           
               <input
                 placeholder="Depth"
                 value={pipe.depth}
@@ -187,10 +197,8 @@ function App() {
             <th>Manhole Name</th>
             <th>Point No</th>
             <th>Rim Elev</th>
-            {/* <th>Pipe Label</th> */}
-         
+
             <th>Direction</th>
-            {/* <th>Angle</th> */}
             <th>Depth</th>
             <th>To</th>
             <th>Invert</th>
@@ -203,16 +211,33 @@ function App() {
           {manholes.map((m, mi) =>
             m.pipes.map((p, pi) => (
               <tr key={`${mi}-${pi}`}>
-                <td>{m.manholeName}</td>
-                <td>{m.pointNo}</td>
-                <td>{m.rimElev}</td>
-                {/* <td>{p.pipeLabel}</td> */}
-               
-                <td>{p.direction}</td>
-                {/* <td>{p.angle}</td> */}
-                <td>{p.depth}</td>
-                <td>{p.to}</td>
-                <td>{calcInvert(m.rimElev, p.depth)}</td>
+                <td>
+                  <input value={m.manholeName} style={{ width: 60 }}
+                    onChange={e => updateManhole(mi, 'manholeName', e.target.value)} />
+                </td>
+                <td>
+                  <input value={m.pointNo} style={{ width: 40 }}
+                    onChange={e => updateManhole(mi, 'pointNo', e.target.value)} />
+                </td>
+                <td>
+                  <input value={m.rimElev} style={{ width: 60 }}
+                    onChange={e => updateManhole(mi, 'rimElev', e.target.value)} />
+                </td>
+                <td>
+                  <input value={p.direction} style={{ width: 50 }}
+                    onChange={e => updateTablePipe(mi, pi, 'direction', e.target.value)} />
+                </td>
+                <td>
+                  <input value={p.depth} style={{ width: 40 }}
+                    onChange={e => updateTablePipe(mi, pi, 'depth', e.target.value)} />
+                </td>
+                <td>
+                  <input value={p.to} style={{ width: 60 }}
+                    onChange={e => updateTablePipe(mi, pi, 'to', e.target.value)} />
+                </td>
+                <td>
+                  {calcInvert(m.rimElev, p.depth)}
+                </td>
               </tr>
             ))
           )}
