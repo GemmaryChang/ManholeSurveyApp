@@ -17,48 +17,50 @@ const DIRECTION_VEC = {
 const DIST = 140;
 
 function autoLayoutManholes(manholes) {
-    if (!Array.isArray(manholes) || manholes.length === 0) {
-        return { nodes: [], edges: [] };
-    }
     const nodes = [];
     const edges = [];
-    const nodeMap = {};
-   let baseX = 300, baseY = 200;
-    const placed = {};
-    manholes.forEach((m, idx) => {
-        // 每个manhole都画出来，自动分散位置
-        const x = baseX + (idx % 4) * 180;
-        const y = baseY + Math.floor(idx / 4) * 180;
+    const nodeMap = {}; 
+
+    const manholeDict = Object.fromEntries(
+        manholes.map(m => [m.manholeName, m])
+    );
+
+    function placeNode(name, x, y, fromDirection = null) {
+        if (nodeMap[name]) return; 
+        const m = manholeDict[name];
+        if (!m) return;
         nodes.push({
-            id: m.manholeName,
+            id: name,
             position: { x, y },
             type: 'circle',
             data: { name: m.manholeName, rimElev: m.rimElev }
         });
-        nodeMap[m.manholeName] = { x, y };
-        placed[m.manholeName] = { x, y };
-    });
-
-    console.log(manholes);
-
-    const pipes = Array.isArray(manholes[0]?.pipes) ? manholes[0].pipes : [];
-    console.log(pipes);
-
-
-   manholes.forEach((m, idx) => {
-        if (!Array.isArray(m.pipes)) return;
-        m.pipes.forEach((p, pi) => {
-            if (!p.to) return; // 防御
+        nodeMap[name] = { x, y };
+        m.pipes?.forEach((p, i) => {
+            if (!p.to || !DIRECTION_VEC[p.direction]) return;
+            const [dx, dy] = DIRECTION_VEC[p.direction];
+            let angleFactor = 1;
+            const newX = x + dx * DIST * angleFactor;
+            const newY = y + dy * DIST * angleFactor;
             edges.push({
-                id: `${m.manholeName}-${p.to}-${pi}`,
-                source: m.manholeName,
+                id: `${name}-${p.to}-${i}`,
+                source: name,
                 target: p.to,
-                type: 'arrow',
+                type: 'straight',
                 markerEnd: { type: 'arrowclosed', color: '#d00' }
             });
+            placeNode(p.to, newX, newY, p.direction);
         });
-    });
+    }
 
+    if (manholes.length) {
+        placeNode(manholes[0].manholeName, 300, 200);
+        manholes.forEach(m => {
+            if (!nodeMap[m.manholeName]) {
+                placeNode(m.manholeName, 80 + Math.random() * 120, 350 + Math.random() * 80);
+            }
+        });
+    }
 
     return { nodes, edges };
 }
@@ -71,52 +73,14 @@ function autoLayoutManholes(manholes) {
 
 
 export default function FlowDemo({ manholes }) {
-    // const nodes = useMemo(() =>
-    //     manholes.map((m, idx) => ({
-    //         id: m.manholeName,
-    //         data: { label: `${m.manholeName}\nRimElev:${m.rimElev}` },
-    //         position: { x: 120 + idx * 220, y: 160 },
-    //         style: { border: '1px solid #888', borderRadius: 6, background: '#f8f9fa', padding: 6 }
-    //     })), [manholes]);
 
-    // const edges = useMemo(() =>
-    //     manholes.flatMap((m) =>
-    //         m.pipes.filter(p => p.to).map((p, idx2) => ({
-    //             id: `${m.manholeName}-${p.to}-${idx2}`,
-    //             source: m.manholeName,
-    //             target: p.to,
-    //             label: [p.pipeLabel, p.direction, p.angle].filter(Boolean).join(' ') + ` d=${p.depth}`,
-    //             style: { stroke: '#222', strokeWidth: 1.5 },
-    //             labelStyle: { fill: '#222' },
-    //             type: 'arrow',
-    //             markerEnd: {
-    //                 type: 'arrowclosed',
 
-    //                 color: '#d00', // arrow
-    //             },
-    //             style: { stroke: '#d00', strokeWidth: 1.5 },
-    //         }))
-    //     ), [manholes]);
-
-    // const manholes = [
-    //     {
-    //         manholeName: 'st1',
-    //         rimElev: '601.323',
-    //         pipes: [
-    //             { to: 'st2', direction: 'NW' },
-    //             { to: 'st3', direction: 'SW' },
-    //         ]
-    //     },
-    //     { manholeName: 'st2', rimElev: '601.000', pipes: [] },
-    //     { manholeName: 'st3', rimElev: '601.531', pipes: [] }
-    // ];
-
-    // 动态生成 nodes 和 edges
+    // generate nodes and edges
     const { nodes, edges } = useMemo(() => autoLayoutManholes(manholes), [manholes]);
     console.log(edges);
 
     const nodeTypes = { circle: CustomNode };
-    const edgeTypes = { arrow: StraightEdge };
+    const edgeTypes = { straight: StraightEdge };
 
 
 
