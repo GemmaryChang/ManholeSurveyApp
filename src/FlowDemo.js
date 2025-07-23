@@ -2,8 +2,7 @@ import React, { useMemo } from 'react';
 import ReactFlow, { MiniMap, Controls, Background } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { StraightEdge } from 'reactflow';
-import CustomNode from './CustomNode'; // 路径视你的项目结构
-
+import CustomNode from './CustomNode';
 
 const DIRECTION_VEC = {
     N: [0, -1],
@@ -18,107 +17,60 @@ const DIRECTION_VEC = {
 const DIST = 140;
 
 function autoLayoutManholes(manholes) {
+    if (!Array.isArray(manholes) || manholes.length === 0) {
+        return { nodes: [], edges: [] };
+    }
     const nodes = [];
     const edges = [];
     const nodeMap = {};
-    // 以第一个manhole为中心
-    let baseX = 300, baseY = 200;
+   let baseX = 300, baseY = 200;
+    const placed = {};
     manholes.forEach((m, idx) => {
-        if (idx === 0) {
-            nodes.push({
-                id: m.manholeName,
-                position: { x: baseX, y: baseY },
-                type: 'circle',
-                data: { name: m.manholeName, rimElev: m.rimElev }
-            });
-            nodeMap[m.manholeName] = { x: baseX, y: baseY };
-        }
-    });
-
-    // 只布局第一节点的pipes（可按你需要扩展成递归）
-    manholes[0].pipes.forEach((p, idx) => {
-        const [dx, dy] = DIRECTION_VEC[p.direction];
-        const x = baseX + dx * DIST;
-        const y = baseY + dy * DIST;
+        // 每个manhole都画出来，自动分散位置
+        const x = baseX + (idx % 4) * 180;
+        const y = baseY + Math.floor(idx / 4) * 180;
         nodes.push({
-            id: p.to,
+            id: m.manholeName,
             position: { x, y },
             type: 'circle',
-            data: {
-                name: p.to,
-                rimElev: manholes.find(m => m.manholeName === p.to)?.rimElev
-            }
+            data: { name: m.manholeName, rimElev: m.rimElev }
         });
-        nodeMap[p.to] = { x, y };
-        edges.push({
-            id: `${manholes[0].manholeName}-${p.to}`,
-            source: manholes[0].manholeName,
-            target: p.to,
-            type: 'arrow',
-            markerEnd: { type: 'arrowclosed', color: '#d00' }
+        nodeMap[m.manholeName] = { x, y };
+        placed[m.manholeName] = { x, y };
+    });
+
+    console.log(manholes);
+
+    const pipes = Array.isArray(manholes[0]?.pipes) ? manholes[0].pipes : [];
+    console.log(pipes);
+
+
+   manholes.forEach((m, idx) => {
+        if (!Array.isArray(m.pipes)) return;
+        m.pipes.forEach((p, pi) => {
+            if (!p.to) return; // 防御
+            edges.push({
+                id: `${m.manholeName}-${p.to}-${pi}`,
+                source: m.manholeName,
+                target: p.to,
+                type: 'arrow',
+                markerEnd: { type: 'arrowclosed', color: '#d00' }
+            });
         });
     });
+
 
     return { nodes, edges };
 }
 
-// const nodes = [
-//   {
-//     id: 'st1',
-//     type: 'circle', // 关键
-//     data: { label: `st1\nRimElev:11` },
-//     position: { x: 120, y: 160 }
-//   },
-//   {
-//     id: 'st2',
-//     type: 'circle',
-//     data: { label: `st2\nRimElev:12` },
-//     position: { x: 340, y: 160 }
-//   },
-//   {
-//     id: 'st3',
-//     type: 'circle',
-//     data: { label: `st3\nRimElev:12` },
-//     position: { x: 520, y: 160 }
-//   }
-// ];
-
-
-// const edges = [
-//   {
-//     id: 'st1-st2',
-//     source: 'st1',
-//     target: 'st2',
-//     type: 'arrow',
-//     style: { stroke: '#d00', strokeWidth: 1.5 },
-//     markerEnd: { type: 'arrowclosed', color: '#d00' }
-//   },
-//   {
-//     id: 'st1-st3',
-//     source: 'st1',
-//     target: 'st3',
-
-//     style: { stroke: '#d00', strokeWidth: 1.5 },
-//     labelStyle: { fill: '#222' },
-//     type: 'arrow',
-//     markerEnd: {
-//       type: 'arrowclosed',
-//       color: '#d00'
-//     }
-//   }
-// ];
-
-// const edgeTypes = {
-//   arrow: StraightEdge,
-// };
-
-// const nodeTypes = {
-//   circle: CustomNode, // 注册类型
-// };
 
 
 
-export default function FlowDemo() {
+
+
+
+
+export default function FlowDemo({ manholes }) {
     // const nodes = useMemo(() =>
     //     manholes.map((m, idx) => ({
     //         id: m.manholeName,
@@ -146,21 +98,21 @@ export default function FlowDemo() {
     //         }))
     //     ), [manholes]);
 
-    const manholes = [
-        {
-            manholeName: 'st1',
-            rimElev: '601.323',
-            pipes: [
-                { to: 'st2', direction: 'NW' },
-                { to: 'st3', direction: 'SW' },
-            ]
-        },
-        { manholeName: 'st2', rimElev: '601.000', pipes: [] },
-        { manholeName: 'st3', rimElev: '601.531', pipes: [] }
-    ];
+    // const manholes = [
+    //     {
+    //         manholeName: 'st1',
+    //         rimElev: '601.323',
+    //         pipes: [
+    //             { to: 'st2', direction: 'NW' },
+    //             { to: 'st3', direction: 'SW' },
+    //         ]
+    //     },
+    //     { manholeName: 'st2', rimElev: '601.000', pipes: [] },
+    //     { manholeName: 'st3', rimElev: '601.531', pipes: [] }
+    // ];
 
     // 动态生成 nodes 和 edges
-    const { nodes, edges } = autoLayoutManholes(manholes);
+    const { nodes, edges } = useMemo(() => autoLayoutManholes(manholes), [manholes]);
     console.log(edges);
 
     const nodeTypes = { circle: CustomNode };
